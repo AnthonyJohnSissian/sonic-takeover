@@ -114,10 +114,10 @@ export default function ShareCard({ identity }: ShareCardProps) {
     ctx.font = '300 14px "Inter", sans-serif';
     ctx.fillText("SONIC TAKEOVER OF EARTH", CARD_WIDTH / 2, artY + artSize + 270);
 
-    // --- "youtheme.com" ---
+    // --- "youtheeme.com" ---
     ctx.fillStyle = "#666666";
     ctx.font = '400 16px "Inter", sans-serif';
-    ctx.fillText("youtheme.com", CARD_WIDTH / 2, CARD_HEIGHT - 50);
+    ctx.fillText("youtheeme.com", CARD_WIDTH / 2, CARD_HEIGHT - 50);
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => resolve(blob), "image/png");
@@ -193,7 +193,7 @@ export default function ShareCard({ identity }: ShareCardProps) {
         <p className="text-war-muted text-sm mb-1">I am</p>
         <p className="text-4xl font-data font-bold text-gold glow-gold mb-2">{identity}</p>
         <p className="text-white font-bold tracking-wide">YOU THEE ME</p>
-        <p className="text-war-muted text-xs mt-2">youtheme.com</p>
+        <p className="text-war-muted text-xs mt-2">youtheeme.com</p>
       </div>
 
       {/* Buttons */}
