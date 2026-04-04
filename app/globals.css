@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #D4AF37;
+  --color-gold-dim: #B8960F;
+  --color-gold-bright: #FFD700;
+  --color-war-black: #000000;
+  --color-war-dark: #0A0A0A;
+  --color-war-panel: #111111;
+  --color-war-border: #1A1A1A;
+  --color-war-text: #E5E5E5;
+  --color-war-muted: #666666;
+  --color-war-red: #FF3333;
+  --color-war-green: #00FF88;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+body {
+  background: #000000;
+  color: #E5E5E5;
+  font-family: var(--font-sans);
+}
+
+/* War room number styling */
+.font-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gold glow effect */
+.glow-gold {
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Pulse animation for live indicators */
+@keyframes war-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-war-pulse {
+  animation: war-pulse 2s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
