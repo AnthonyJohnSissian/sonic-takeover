@@ -8,6 +8,7 @@ import GrowthChart from "@/components/GrowthChart";
 import SaveRateChart from "@/components/SaveRateChart";
 import AlbumFunnel from "@/components/AlbumFunnel";
 import TrackTable from "@/components/TrackTable";
+import WorldMap from "@/components/WorldMap";
 
 interface GrowthSnapshot {
   snapshot_date: string;
@@ -181,6 +182,11 @@ export default function SovereigntyPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <SundayPulseChart />
             <SaveRateChart tracks={tracks} />
+          </div>
+
+          {/* World Map */}
+          <div className="mb-6">
+            <WorldMap />
           </div>
 
           {/* Album Funnel */}
