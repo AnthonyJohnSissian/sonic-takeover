@@ -5,12 +5,12 @@ export async function GET() {
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
-    .from("spotify_daily")
+    .from("press_coverage")
     .select("*")
-    .order("snapshot_date", { ascending: true });
+    .order("published_at", { ascending: false });
 
   if (error) {
-    console.error("Growth fetch error:", error);
+    console.error("Press fetch error:", error);
     return NextResponse.json([], { status: 500 });
   }
 

@@ -9,34 +9,20 @@ import SaveRateChart from "@/components/SaveRateChart";
 import AlbumFunnel from "@/components/AlbumFunnel";
 import TrackTable from "@/components/TrackTable";
 import WorldMap from "@/components/WorldMap";
+import PlaylistPlacements from "@/components/PlaylistPlacements";
+import PressCoverage from "@/components/PressCoverage";
+import RealtimeFeed from "@/components/RealtimeFeed";
 
-interface GrowthSnapshot {
-  snapshot_date: string;
-  monthly_listeners: number;
-  total_streams: number;
-  followers: number;
-  countries_count: number;
-  super_listeners: number;
-}
-
-interface TrackStat {
-  track_id: string;
-  track_name: string;
-  total_streams: number;
-  unique_listeners: number;
-  total_saves: number;
-  completion_rate: number;
-  skip_rate: number;
-  repeat_rate: number;
-  save_rate: number;
-}
+const RELEASE_DATE = new Date("2026-03-19");
 
 export default function SovereigntyPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [growth, setGrowth] = useState<GrowthSnapshot[]>([]);
-  const [tracks, setTracks] = useState<TrackStat[]>([]);
+  const [growth, setGrowth] = useState<any[]>([]);
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [playlists, setPlaylists] = useState<any[]>([]);
+  const [press, setPress] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -58,12 +44,16 @@ export default function SovereigntyPage() {
     if (!authenticated) return;
     const fetchData = async () => {
       try {
-        const [growthRes, tracksRes] = await Promise.all([
+        const [growthRes, tracksRes, playlistsRes, pressRes] = await Promise.all([
           fetch("/api/data/growth"),
           fetch("/api/data/tracks"),
+          fetch("/api/data/playlists"),
+          fetch("/api/data/press"),
         ]);
         if (growthRes.ok) setGrowth(await growthRes.json());
         if (tracksRes.ok) setTracks(await tracksRes.json());
+        if (playlistsRes.ok) setPlaylists(await playlistsRes.json());
+        if (pressRes.ok) setPress(await pressRes.json());
       } finally {
         setLoading(false);
       }
@@ -71,6 +61,7 @@ export default function SovereigntyPage() {
     fetchData();
   }, [authenticated]);
 
+  // --- Login gate ---
   if (!authenticated) {
     return (
       <main className="min-h-screen bg-war-black flex items-center justify-center">
@@ -109,19 +100,17 @@ export default function SovereigntyPage() {
   }
 
   const latest = growth[growth.length - 1];
-  const previous = growth[growth.length - 2];
+  const daysSinceRelease = Math.ceil(
+    (Date.now() - RELEASE_DATE.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
-  const pctChange = (curr: number, prev: number) => {
-    if (!prev) return "+0%";
-    const pct = ((curr - prev) / prev * 100).toFixed(1);
-    return `${+pct > 0 ? "+" : ""}${pct}%`;
-  };
-
-  const growthChartData = growth.map((g) => ({
+  const growthChartData = growth.map((g: any) => ({
     date: new Date(g.snapshot_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     listeners: g.monthly_listeners,
     streams: g.total_streams,
   }));
+
+  const playlistReach = playlists.reduce((sum: number, p: any) => sum + (p.followers || 0), 0);
 
   return (
     <main className="min-h-screen bg-war-black p-4 lg:p-6">
@@ -133,81 +122,91 @@ export default function SovereigntyPage() {
         </div>
       ) : (
         <>
-          {/* Top metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          {/* Panel 1: COMMAND HEADER — 6 stat cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
             <StatCard
               label="Total Streams"
               value={latest?.total_streams?.toLocaleString() || "—"}
-              change={previous ? pctChange(latest.total_streams, previous.total_streams) : undefined}
-              changeType="up"
               icon="🔊"
             />
             <StatCard
               label="Monthly Listeners"
               value={latest?.monthly_listeners?.toLocaleString() || "—"}
-              change={previous ? pctChange(latest.monthly_listeners, previous.monthly_listeners) : undefined}
-              changeType="up"
               icon="👁️"
-            />
-            <StatCard
-              label="Countries"
-              value={latest?.countries_count || "—"}
-              change={previous ? pctChange(latest.countries_count, previous.countries_count) : undefined}
-              changeType="up"
-              icon="🌍"
-            />
-            <StatCard
-              label="Super Listeners"
-              value={latest?.super_listeners || "—"}
-              change={previous ? pctChange(latest.super_listeners, previous.super_listeners) : undefined}
-              changeType="up"
-              icon="⚡"
             />
             <StatCard
               label="Followers"
               value={latest?.followers?.toLocaleString() || "—"}
-              change={previous ? pctChange(latest.followers, previous.followers) : undefined}
-              changeType="up"
               icon="🫡"
+            />
+            <StatCard
+              label="Countries"
+              value={latest?.countries_count || "—"}
+              icon="🌍"
+            />
+            <StatCard
+              label="Days Since Release"
+              value={daysSinceRelease}
+              icon="📅"
+            />
+            <StatCard
+              label="Playlist Reach"
+              value={playlistReach.toLocaleString()}
+              icon="📋"
             />
           </div>
 
-          {/* Charts row 1 */}
+          {/* Panel 2: GROWTH TRAJECTORY */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <GrowthChart data={growthChartData} title="Listener Growth Trajectory" dataKey="listeners" />
+            <GrowthChart data={growthChartData} title="Day 1 → Day 17: Listener Growth" dataKey="listeners" />
             <GrowthChart data={growthChartData} title="Stream Accumulation" dataKey="streams" />
           </div>
 
-          {/* Charts row 2 */}
+          {/* Panel 3: TRACK PERFORMANCE */}
+          <div className="mb-6">
+            <TrackTable tracks={tracks} />
+          </div>
+
+          {/* Panel 4: PLAYLIST PLACEMENTS */}
+          <div className="mb-6">
+            <PlaylistPlacements playlists={playlists} />
+          </div>
+
+          {/* Panel 5: WORLD MAP */}
+          <div className="mb-6">
+            <WorldMap />
+          </div>
+
+          {/* Panel 6: SUNDAY PULSE + SAVE RATE */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <SundayPulseChart />
             <SaveRateChart tracks={tracks} />
           </div>
 
-          {/* World Map */}
+          {/* Panel 7: PRESS COVERAGE */}
           <div className="mb-6">
-            <WorldMap />
+            <PressCoverage press={press} />
           </div>
 
-          {/* Album Funnel */}
+          {/* Panel 8: ALBUM FUNNEL */}
           <div className="mb-6">
             <AlbumFunnel tracks={tracks} />
           </div>
 
-          {/* Track Intel Table */}
+          {/* Panel 9: REAL-TIME FEED */}
           <div className="mb-6">
-            <TrackTable tracks={tracks} />
+            <RealtimeFeed />
           </div>
 
-          {/* Bottom status */}
-          <div className="border border-war-border bg-war-panel p-3 flex items-center justify-between text-xs">
+          {/* Status bar */}
+          <div className="border border-war-border bg-war-panel p-3 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div className="flex items-center gap-4">
               <span className="text-war-muted">ARTIST:</span>
-              <span className="text-gold font-data">YOU THEE ME</span>
+              <span className="text-gold font-data">Anthony John Sissian / YOU THEE ME</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-war-muted">DATA POINTS:</span>
-              <span className="text-war-text font-data">{growth.length} snapshots</span>
+              <span className="text-war-muted">SAVE RATE:</span>
+              <span className="text-war-green font-data">10-37% (industry avg 2-5%)</span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-war-muted">STATUS:</span>
